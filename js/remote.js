@@ -1,45 +1,47 @@
-const Remote = function (socket) {
+const Remote = function () {
 	// 游戏对象
 	let game;
 	// 绑定按钮事件
 	const bindEvents = function () {
-		socket.on('init', function(data) {
-			start(data.type, data.dir);
-		});
-		socket.on('next', function(data) {
-			game.performNext(data.type, data.dir);
-		});
-		socket.on('rotate', function(data) {
-			game.rotate();
-		});
-		socket.on('right', function(data) {
-			game.right();
-		});
-		socket.on('down', function(data) {
+		document.getElementById('down').onclick = function () {
 			game.down();
-		});
-		socket.on('left', function(data) {
+		}
+		document.getElementById('left').onclick = function () {
 			game.left();
-		});
-		socket.on('fall', function(data) {
+		}
+		document.getElementById('right').onclick = function () {
+			game.right();
+		}
+		document.getElementById('rotate').onclick = function () {
+			game.rotate();
+		}
+		document.getElementById('fall').onclick = function () {
 			game.fall();
-		});
-		socket.on('fixed', function(data) {
+		}
+		document.getElementById('fixed').onclick = function () {
 			game.fixed();
-		});
-		socket.on('line', function(data) {
+		}
+		document.getElementById('performNext').onclick = function () {
+			game.performNext(2, 2);
+		}
+		document.getElementById('checkClear').onclick = function () {
 			game.checkClear();
-			game.addScore(data);
-		});
-		socket.on('time', function(data) {
-			game.setTime(data);
-		});
-		socket.on('lose', function(data) {
-			game.gameover(false);
-		});
-		socket.on('addTailLines', function(data) {
-			game.addTailLines(data);
-		});
+		}
+		document.getElementById('checkGameOver').onclick = function () {
+			game.checkGameOver();
+		}
+		document.getElementById('setTime').onclick = function () {
+			game.setTime(20);
+		}
+		document.getElementById('addScore').onclick = function () {
+			game.addScore(1);
+		}
+		document.getElementById('gameover').onclick = function () {
+			game.gameover(true);
+		}
+		document.getElementById('addTailLines').onclick = function () {
+			game.addTailLines([[0, 1, 0, 1, 0, 1, 0, 0, 0, 0]]);
+		}
 	}
 	// 开始
 	const start = function (type, dir) {
@@ -53,6 +55,7 @@ const Remote = function (socket) {
 		game = new Game();
 		game.init(doms, type, dir);
 	}
-	
-	bindEvents();
+	// 导出
+	this.start = start;
+	this.bindEvents = bindEvents;
 }

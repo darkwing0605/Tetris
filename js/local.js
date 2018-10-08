@@ -1,4 +1,4 @@
-const Local = function(socket) {
+const Local = function() {
 	// 游戏对象
 	let game;
 	// 时间间隔
@@ -15,23 +15,18 @@ const Local = function(socket) {
 			if (e.keyCode === 38) {
 				// up
 				game.rotate();
-				socket.emit('rotate');
 			} else if (e.keyCode === 39) {
 				// right
 				game.right();
-				socket.emit('right');
 			} else if (e.keyCode === 40) {
 				// down
 				game.down();
-				socket.emit('down');
 			} else if (e.keyCode === 37) {
 				// left
 				game.left();
-				socket.emit('left');
 			} else if (e.keyCode === 32) {
 				// space
 				game.fall();
-				socket.emit('fall');
 			}
 		}
 	}
@@ -40,30 +35,17 @@ const Local = function(socket) {
 		timeFunc();
 		if(!game.down()) {
 			game.fixed();
-			socket.emit('fixed');
 			let line = game.checkClear();
 			if (line) {
 				game.addScore(line);
-				socket.emit('line', line);
-				if (line > 1) {
-					let bottomLines = gererataBottomLine(line);
-					socket.emit('bottomLines', bottomLines)
-				}
 			}
 			let gameOver = game.checkGameOver();
 			if (gameOver) {
 				stop();
 				game.gameover(false);
-				document.getElementById('remote_gameover').innerHTML = '你赢了';
-				socket.emit('lose');
 			} else {
-				let t = generateType();
-				let d = generateDir();
-				game.performNext(t, d);
-				socket.emit('next', {type: t, dir: d});
+				game.performNext(generateType(), generateDir());
 			}
-		} else {
-			socket.emit('down');
 		}
 	}
 	// 随机生成干扰行
@@ -85,7 +67,9 @@ const Local = function(socket) {
 			timeCount = 0;
 			time++;
 			game.setTime(time);
-			socket.emit('time', time)
+			if (time % 10 === 0) {
+				game.addTailLines(gererataBottomLine(1));
+			}
 		}
 	}
 	// 随机生成一个方块种类
@@ -106,15 +90,9 @@ const Local = function(socket) {
 			resultDiv: document.getElementById('local_gameover')
 		}
 		game = new Game();
-		let type = generateType();
-		let dir = generateDir();
-		game.init(doms, type, dir);
-		socket.emit('init', {type: type, dir: dir});
+		game.init(doms, generateType(), generateDir());
 		bindKeyEvent();
-		let t = generateType();
-		let d = generateDir();
-		game.performNext(t, d);
-		socket.emit('next', {type: t, dir: d});
+		game.performNext(generateType(), generateDir());
 		timer = setInterval(move, INTERVAL);
 	}
 	// 结束
@@ -125,25 +103,6 @@ const Local = function(socket) {
 		}
 		document.onkeydown = null;
 	}
-
-	socket.on('start', function() {
-		document.getElementById('waiting').innerHTML = '';
-		start();
-	})
-
-	socket.on('lose', function() {
-		game.gameover(true);
-		stop();
-	})
-
-	socket.on('leave', function() {
-		document.getElementById('local_gameover').innerHTML = '对方离线';
-		document.getElementById('remote_gameover').innerHTML = '已离线';
-		stop();
-	})
-
-	socket.on('bottomLines', function(data) {
-		game.addTailLines(data);
-		socket.emit('addTailLines', data);
-	})
+	// 导出API
+	this.start = start;
 }
